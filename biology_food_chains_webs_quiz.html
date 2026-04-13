@@ -1,0 +1,415 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.wrap{padding:1.5rem 0;max-width:720px;}
+.prog-bar{height:6px;background:var(--color-border-tertiary);border-radius:3px;margin-bottom:1.5rem;}
+.prog-fill{height:100%;background:#3B6D11;border-radius:3px;transition:width 0.3s;}
+.q-meta{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-secondary);}
+.badge-green{background:#EAF3DE;border-color:#3B6D11;color:#27500A;}
+.badge-teal{background:#E1F5EE;border-color:#0F6E56;color:#085041;}
+.badge-purple{background:#EEEDFE;border-color:#534AB7;color:#3C3489;}
+.badge-amber{background:#FAEEDA;border-color:#854F0B;color:#412402;}
+.q-text{font-size:15px;font-weight:500;color:var(--color-text-primary);line-height:1.55;margin-bottom:1rem;}
+.mc-opt{display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:8px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px;cursor:pointer;transition:background 0.15s;}
+.mc-opt:hover:not(:disabled){background:var(--color-background-secondary);}
+.mc-opt.show-correct{background:#EAF3DE;border-color:#639922;color:#27500A;}
+.mc-opt.wrong{background:#FCEBEB;border-color:#A32D2D;color:#501313;}
+textarea{width:100%;min-height:80px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:14px;font-family:var(--font-sans);color:var(--color-text-primary);background:var(--color-background-primary);resize:vertical;}
+textarea:focus{outline:none;border-color:#3B6D11;}
+.fb{margin-top:12px;padding:12px 14px;border-radius:var(--border-radius-md);font-size:13px;line-height:1.65;}
+.fb.ok{background:#EAF3DE;border:0.5px solid #639922;color:#27500A;}
+.fb.partial{background:#FAEEDA;border:0.5px solid #854F0B;color:#412402;}
+.fb.no{background:#FCEBEB;border:0.5px solid #A32D2D;color:#501313;}
+.btn{padding:9px 18px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px;cursor:pointer;margin-right:6px;margin-top:10px;}
+.btn:hover{background:var(--color-background-secondary);}
+.btn-p{background:#3B6D11;color:#fff;border-color:#27500A;}
+.btn-p:hover{background:#27500A;}
+.divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:1.25rem 0;}
+.nav-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.score-card{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem;}
+.grade{font-size:52px;font-weight:500;text-align:center;margin:0.5rem 0;}
+.t-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px;}
+.t-row:last-child{border-bottom:none;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;}
+.dg{background:#639922;}.da{background:#BA7517;}.dr{background:#E24B4A;}
+.kw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:1rem;}
+.kw-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;}
+.kw-term{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px;}
+.kw-def{font-size:12px;color:var(--color-text-secondary);line-height:1.5;}
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-tertiary);margin-bottom:8px;}
+.chain-box{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:12px;font-size:14px;line-height:2;}
+.chain-arrow{color:var(--color-text-tertiary);margin:0 6px;}
+.web-svg{width:100%;max-width:420px;display:block;margin:0 auto 12px;}
+.hint{font-size:13px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.5;}
+</style>
+
+<div class="wrap">
+<div id="qarea"></div>
+</div>
+
+<script>
+const KW=[
+  {term:"Producer",def:"An organism that makes its own food using photosynthesis (a plant or algae). Always the first organism in a food chain. Gets energy directly from the Sun.",color:"badge-green"},
+  {term:"Primary consumer",def:"An organism that eats the producer. Always a herbivore. The second organism in a food chain. E.g. rabbit eats grass.",color:"badge-green"},
+  {term:"Secondary consumer",def:"An organism that eats the primary consumer. Usually a carnivore or omnivore. Third in the food chain. E.g. fox eats rabbit.",color:"badge-teal"},
+  {term:"Tertiary consumer",def:"An organism that eats the secondary consumer. A top predator. Fourth in the food chain. E.g. eagle eats fox.",color:"badge-teal"},
+  {term:"Herbivore",def:"An animal that ONLY eats plants (producers). Always a primary consumer. E.g. rabbit, cow, caterpillar.",color:"badge-amber"},
+  {term:"Carnivore",def:"An animal that ONLY eats other animals. Can be a secondary or tertiary consumer. E.g. fox, shark, owl.",color:"badge-amber"},
+  {term:"Omnivore",def:"An animal that eats BOTH plants AND animals. Can occupy multiple levels in a food web. E.g. human, bear, fox.",color:"badge-amber"},
+  {term:"Food chain",def:"A linear sequence showing what eats what. Arrows show the direction of energy flow (from eaten → to eater). Always starts with a producer.",color:"badge-purple"},
+  {term:"Food web",def:"A network of interconnected food chains in a habitat. Shows the complex feeding relationships between many organisms.",color:"badge-purple"},
+  {term:"Interdependence",def:"How organisms in an ecosystem depend on each other for food, shelter, pollination, etc. If one population changes, others are affected.",color:"badge-purple"},
+  {term:"Predator",def:"An animal that hunts and eats other animals (prey). Population size depends on availability of prey.",color:"badge-teal"},
+  {term:"Prey",def:"An animal that is hunted and eaten by a predator. Population size affected by predator numbers.",color:"badge-teal"},
+];
+
+const Qs=[
+  // Key terms
+  {id:1,type:"kw",topic:"Key terms",marks:1,
+   text:"What does the ARROW in a food chain represent?",
+   opts:["Which organism is bigger","The direction of energy flow from prey to predator","Which organism is the predator","The direction water flows"],
+   ans:1,
+   exp:"Arrows in a food chain show the direction of energy transfer — from the organism being eaten TO the organism eating it. So grass → rabbit → fox means grass is eaten by rabbit, rabbit is eaten by fox."},
+  {id:2,type:"kw",topic:"Key terms",marks:1,
+   text:"Which of these organisms is always the PRODUCER in a food chain?",
+   opts:["Rabbit","Fox","Grass (or any green plant)","Hawk"],
+   ans:2,
+   exp:"A producer makes its own food via photosynthesis. It is always a plant or algae, always first in the food chain, and gets its energy from sunlight. Animals cannot produce their own food — they are consumers."},
+  {id:3,type:"kw",topic:"Key terms",marks:1,
+   text:"A rabbit eats grass. What type of consumer is the rabbit?",
+   opts:["Secondary consumer","Tertiary consumer","Primary consumer","Omnivore"],
+   ans:2,
+   exp:"The rabbit eats the producer (grass) directly, so it is a PRIMARY consumer. It is also a herbivore because it only eats plants."},
+  {id:4,type:"kw",topic:"Key terms",marks:1,
+   text:"Which word describes an animal that eats ONLY plants?",
+   opts:["Carnivore","Omnivore","Herbivore","Producer"],
+   ans:2,
+   exp:"Herbivore = plant eater only. Carnivore = meat eater only. Omnivore = both plants and animals. Herbivores are always primary consumers."},
+  {id:5,type:"kw",topic:"Key terms",marks:1,
+   text:"A fox eats rabbits AND berries. What type of organism is the fox?",
+   opts:["Herbivore","Carnivore","Producer","Omnivore"],
+   ans:3,
+   exp:"An omnivore eats both plants AND animals. The fox eats berries (plant) and rabbits (animal), so it is an omnivore. Omnivores can appear at more than one level in a food web."},
+  {id:6,type:"kw",topic:"Key terms",marks:1,
+   text:"In the food chain: Grass → Rabbit → Fox → Eagle — what is the eagle?",
+   opts:["Primary consumer","Secondary consumer","Tertiary consumer","Producer"],
+   ans:2,
+   exp:"Count the levels: Grass = producer, Rabbit = primary consumer, Fox = secondary consumer, Eagle = TERTIARY consumer (4th in the chain). Tertiary consumers are often top predators."},
+  // Food chains
+  {id:7,type:"chain",topic:"Food chains",marks:1,
+   chain:"Grass → Caterpillar → Thrush → Sparrowhawk",
+   text:"In this food chain, what is the THRUSH?",
+   opts:["Producer","Primary consumer","Secondary consumer","Tertiary consumer"],
+   ans:2,
+   exp:"Grass = producer. Caterpillar = primary consumer (eats grass). Thrush = SECONDARY consumer (eats caterpillar). Sparrowhawk = tertiary consumer. The thrush is also a carnivore."},
+  {id:8,type:"chain",topic:"Food chains",marks:1,
+   chain:"Algae → Water flea → Stickleback → Perch → Pike",
+   text:"What is the water flea in this aquatic food chain?",
+   opts:["Producer","Primary consumer","Secondary consumer","Tertiary consumer"],
+   ans:1,
+   exp:"Algae = producer. Water flea eats algae directly → PRIMARY consumer. Water fleas are also herbivores. The stickleback = secondary consumer, perch = tertiary consumer, pike = quaternary consumer."},
+  {id:9,type:"chain",topic:"Food chains",marks:1,
+   chain:"Oak tree → Caterpillar → Blue tit → Sparrowhawk",
+   text:"Which organism in this food chain is a herbivore?",
+   opts:["Oak tree","Caterpillar","Blue tit","Sparrowhawk"],
+   ans:1,
+   exp:"The caterpillar only eats plant material (oak leaves) so it is a HERBIVORE. It is also the primary consumer. The blue tit and sparrowhawk eat animals so they are carnivores."},
+  {id:10,type:"chain",topic:"Food chains",marks:2,
+   text:"Write out a food chain with FOUR organisms using these: Fox, Grass, Rabbit, Hawk. Label each organism with its correct feeding level.",
+   type2:"written",
+   hint:"Start with the producer. Use arrows to show energy flow direction.",
+   keyPoints:["Grass (producer) → Rabbit (primary consumer) → Fox (secondary consumer) → Hawk (tertiary consumer)","arrows show direction of energy flow","grass is always first as the producer"],
+   ms:"Grass → Rabbit → Fox → Hawk (1). Correct labelling of producer, primary, secondary, tertiary consumer (1)."},
+  // Food webs
+  {id:11,type:"web",topic:"Food webs",marks:1,
+   websvg:true,
+   text:"Look at the food web. Which organism is the ONLY producer?",
+   opts:["Rabbit","Grass","Fox","Hawk"],
+   ans:1,
+   exp:"Grass is the only producer — it makes its own food via photosynthesis. All other organisms are consumers that get energy by eating other organisms. In a food web, producers have no arrows pointing into them from other organisms."},
+  {id:12,type:"web",topic:"Food webs",marks:1,
+   websvg:true,
+   text:"Using the food web, if the rabbit population DECREASES, what is most likely to happen to the fox population?",
+   opts:["Increase — more food available","Stay the same","Decrease — less food available","It would not be affected"],
+   ans:2,
+   exp:"The fox depends on rabbits as a food source. If rabbit numbers decrease, foxes have LESS food → fox population also decreases. This shows interdependence — populations are linked."},
+  {id:13,type:"web",topic:"Food webs",marks:1,
+   websvg:true,
+   text:"What is the advantage of a food WEB over a food CHAIN for showing feeding relationships?",
+   opts:["Food webs are shorter and simpler","Food webs show only one pathway","Food webs show the complex network of all feeding relationships in a habitat","Food webs only show producers"],
+   ans:2,
+   exp:"A food web shows multiple interconnected food chains — it gives a more complete and realistic picture of feeding relationships in an ecosystem. Most organisms eat more than one type of food."},
+  // Interdependence
+  {id:14,type:"inter",topic:"Interdependence",marks:1,
+   text:"Farmers remove all foxes from a field. Rabbits eat the grass. Predict what happens to the grass population.",
+   opts:["Grass increases","Grass decreases","Grass stays the same","Grass becomes a producer"],
+   ans:1,
+   exp:"With no foxes, rabbit population increases (less predation). More rabbits eat more grass → grass population DECREASES. This chain of effects is called interdependence — removing one organism affects all others."},
+  {id:15,type:"inter",topic:"Interdependence",marks:1,
+   text:"What does INTERDEPENDENCE mean in an ecosystem?",
+   opts:["Plants make their own food","Organisms depend on each other for survival","Carnivores only eat plants","All organisms compete for sunlight"],
+   ans:1,
+   exp:"Interdependence means organisms rely on each other — for food, pollination, shelter, seed dispersal, etc. If one population changes (due to disease, hunting, climate), it ripples through the whole food web."},
+  {id:16,type:"inter",topic:"Interdependence",marks:1,
+   text:"A disease kills most of the caterpillars in a woodland. There are: Oak trees → Caterpillars → Blue tits → Sparrowhawks. What happens to the oak tree population?",
+   opts:["Decreases — less photosynthesis","Increases — fewer caterpillars eating leaves","Stays exactly the same","Becomes a consumer"],
+   ans:1,
+   exp:"Fewer caterpillars means LESS leaf-eating → oak trees are less damaged → oak population INCREASES. This is interdependence — the producer benefits when its consumer (primary) declines."},
+  // Written
+  {id:17,type:"written",topic:"Food webs",marks:3,
+   text:"Explain the difference between a food chain and a food web. Use examples in your answer.",
+   hint:"Think: structure, how many pathways, which is more realistic.",
+   keyPoints:["food chain = single linear sequence of who eats what","food web = multiple interconnected food chains","food web is more realistic — most organisms eat more than one thing","both start with a producer, arrows show energy flow"],
+   ms:"Food chain: a single linear sequence showing energy flow between organisms e.g. grass→rabbit→fox (1). Food web: a network of interconnected food chains showing all feeding relationships in a habitat (1). Food webs are more realistic as most animals eat more than one type of organism (1)."},
+  {id:18,type:"written",topic:"Interdependence",marks:3,
+   text:"Explain what would happen to a food web if the producer (e.g. grass) was destroyed by drought. Use the term interdependence in your answer.",
+   hint:"Think about what happens at each level — primary, secondary, tertiary consumers.",
+   keyPoints:["producers destroyed → primary consumers lose food source","primary consumer population decreases","secondary and tertiary consumers also decrease — less prey","interdependence means all organisms in the web are affected"],
+   ms:"Primary consumers would decrease due to lack of food (1). Secondary and tertiary consumers would also decline as their prey decreases (1). This shows interdependence — all organisms in the web depend on each other, so the whole ecosystem is disrupted (1)."},
+];
+
+let cur=0,scores={},answered={},selMC={},showKW=false;
+
+function getMarks(q){
+  if(q.marks) return q.marks;
+  if(q.type==="written") return 3;
+  return 1;
+}
+
+function grade(pct){
+  if(pct>=90)return{g:"9",c:"#085041"};
+  if(pct>=80)return{g:"8",c:"#0F6E56"};
+  if(pct>=70)return{g:"7",c:"#1D9E75"};
+  if(pct>=60)return{g:"6",c:"#3B6D11"};
+  if(pct>=50)return{g:"5",c:"#639922"};
+  if(pct>=40)return{g:"4",c:"#BA7517"};
+  if(pct>=30)return{g:"3",c:"#854F0B"};
+  if(pct>=20)return{g:"2",c:"#993C1D"};
+  return{g:"1",c:"#A32D2D"};
+}
+
+function foodWebSVG(){
+  return `<svg class="web-svg" viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg">
+    <rect width="420" height="260" fill="none"/>
+    <!-- nodes -->
+    <!-- Grass (producer) -->
+    <rect x="160" y="210" width="100" height="34" rx="6" fill="#EAF3DE" stroke="#639922" stroke-width="1"/>
+    <text x="210" y="231" text-anchor="middle" font-size="12" font-weight="500" fill="#27500A">Grass</text>
+    <!-- Rabbit -->
+    <rect x="40" y="135" width="90" height="34" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+    <text x="85" y="156" text-anchor="middle" font-size="12" font-weight="500" fill="#0C447C">Rabbit</text>
+    <!-- Mouse -->
+    <rect x="155" y="135" width="90" height="34" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+    <text x="200" y="156" text-anchor="middle" font-size="12" font-weight="500" fill="#0C447C">Mouse</text>
+    <!-- Grasshopper -->
+    <rect x="278" y="135" width="110" height="34" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+    <text x="333" y="156" text-anchor="middle" font-size="12" font-weight="500" fill="#0C447C">Grasshopper</text>
+    <!-- Fox -->
+    <rect x="60" y="58" width="90" height="34" rx="6" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+    <text x="105" y="79" text-anchor="middle" font-size="12" font-weight="500" fill="#412402">Fox</text>
+    <!-- Owl -->
+    <rect x="180" y="58" width="90" height="34" rx="6" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+    <text x="225" y="79" text-anchor="middle" font-size="12" font-weight="500" fill="#412402">Owl</text>
+    <!-- Hawk -->
+    <rect x="295" y="58" width="90" height="34" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1"/>
+    <text x="340" y="79" text-anchor="middle" font-size="12" font-weight="500" fill="#3C3489">Hawk</text>
+    <!-- arrows: grass→rabbit -->
+    <line x1="175" y1="210" x2="110" y2="169" stroke="#3B6D11" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- grass→mouse -->
+    <line x1="205" y1="210" x2="202" y2="169" stroke="#3B6D11" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- grass→grasshopper -->
+    <line x1="240" y1="210" x2="310" y2="169" stroke="#3B6D11" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- rabbit→fox -->
+    <line x1="85" y1="135" x2="98" y2="92" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- rabbit→owl -->
+    <line x1="110" y1="140" x2="198" y2="92" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- mouse→fox -->
+    <line x1="170" y1="135" x2="118" y2="92" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- mouse→owl -->
+    <line x1="210" y1="135" x2="218" y2="92" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- grasshopper→owl -->
+    <line x1="310" y1="135" x2="252" y2="92" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- grasshopper→hawk -->
+    <line x1="338" y1="135" x2="338" y2="92" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- fox→hawk -->
+    <line x1="138" y1="68" x2="295" y2="68" stroke="#BA7517" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- owl→hawk -->
+    <line x1="270" y1="75" x2="295" y2="75" stroke="#BA7517" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- legend -->
+    <rect x="2" y="2" width="130" height="50" rx="4" fill="var(--color-background-secondary)" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+    <rect x="10" y="10" width="14" height="10" rx="2" fill="#EAF3DE" stroke="#639922" stroke-width="0.8"/>
+    <text x="28" y="19" font-size="10" fill="var(--color-text-secondary)">Producer</text>
+    <rect x="10" y="24" width="14" height="10" rx="2" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.8"/>
+    <text x="28" y="33" font-size="10" fill="var(--color-text-secondary)">1°/2° consumer</text>
+    <rect x="10" y="38" width="14" height="10" rx="2" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.8"/>
+    <text x="28" y="47" font-size="10" fill="var(--color-text-secondary)">Top predator</text>
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#888780"/>
+      </marker>
+    </defs>
+  </svg>`;
+}
+
+function chainHTML(c){
+  const parts=c.split("→");
+  return `<div class="chain-box">${parts.map((p,i)=>`<strong>${p.trim()}</strong>${i<parts.length-1?'<span class="chain-arrow">→</span>':''}`).join("")}</div>`;
+}
+
+function typeLabel(q){
+  if(q.type==="kw") return {txt:"Key terms",cls:"badge-purple"};
+  if(q.type==="chain") return {txt:"Food chains",cls:"badge-green"};
+  if(q.type==="web") return {txt:"Food webs",cls:"badge-teal"};
+  if(q.type==="inter") return {txt:"Interdependence",cls:"badge-amber"};
+  return {txt:"Written",cls:"badge-purple"};
+}
+
+function render(){
+  const el=document.getElementById("qarea");
+  if(cur>=Qs.length){renderResults(el);return;}
+  const q=Qs[cur];
+  const pct=Math.round((cur/Qs.length)*100);
+  const marks=getMarks(q);
+  const {txt,cls}=typeLabel(q);
+  const isWritten=q.type==="written"||(q.type2==="written");
+  const isMC=!isWritten;
+
+  let html=`
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="q-meta">
+      <span style="font-size:13px;color:var(--color-text-secondary);">Q${cur+1} of ${Qs.length}</span>
+      <span class="${cls} badge">${txt}</span>
+      <span class="badge">${marks} mark${marks>1?"s":""}</span>
+    </div>`;
+
+  if(!showKW){
+    html+=`<button class="btn" style="margin-bottom:12px;font-size:12px;" onclick="toggleKW()">🌿 Show key word glossary</button>`;
+  } else {
+    html+=`<button class="btn" style="margin-bottom:12px;font-size:12px;" onclick="toggleKW()">✕ Hide glossary</button>
+    <div class="kw-grid">`;
+    html+=KW.map(k=>`<div class="kw-card"><div class="kw-term">${k.term}</div><div class="kw-def">${k.def}</div></div>`).join("");
+    html+=`</div>`;
+  }
+
+  html+=`<div class="q-text">${q.text}</div>`;
+
+  if(q.chain) html+=chainHTML(q.chain);
+  if(q.websvg||q.webSVG||q.type==="web") html+=foodWebSVG();
+
+  if(isMC && q.opts){
+    html+=q.opts.map((o,i)=>{
+      let cls2="mc-opt";
+      if(answered[q.id]!==undefined){
+        if(i===q.ans) cls2+=" show-correct";
+        else if(i===selMC[q.id]&&i!==q.ans) cls2+=" wrong";
+      }
+      return `<button class="${cls2}" onclick="doMC(${i})" ${answered[q.id]!==undefined?"disabled":""}>${o}</button>`;
+    }).join("");
+    if(answered[q.id]!==undefined){
+      const ok=selMC[q.id]===q.ans;
+      html+=`<div class="fb ${ok?"ok":"no"}"><strong>${ok?"✓ Correct!":"✗ Incorrect"}</strong> — ${q.exp}</div>`;
+    }
+  }
+
+  if(isWritten){
+    if(q.hint) html+=`<p class="hint">Hint: ${q.hint}</p>`;
+    html+=`<textarea id="wi" placeholder="Write your answer here..." ${answered[q.id]!==undefined?"disabled":""}>${answered[q.id]||""}</textarea>`;
+    if(answered[q.id]!==undefined){
+      html+=`<div class="fb partial">
+        <strong>Mark scheme:</strong><br>${q.ms}<br><br>
+        <strong>Key points to include:</strong><br>${q.keyPoints.map(k=>`• ${k}`).join("<br>")}
+      </div>
+      <p style="font-size:13px;color:var(--color-text-secondary);margin-top:10px;">How many marks did you earn?</p>
+      <div class="nav-row">
+        ${Array.from({length:marks+1},(_,i)=>`<button class="btn ${scores[q.id]===i?"btn-p":""}" onclick="setSelf(${i})">${i}/${marks}</button>`).join("")}
+      </div>`;
+    }
+  }
+
+  html+=`<div class="divider"></div>`;
+  const doneOk=answered[q.id]!==undefined&&(isWritten?scores[q.id]!==undefined:true);
+
+  if(answered[q.id]===undefined){
+    if(isWritten) html+=`<div class="nav-row"><button class="btn btn-p" onclick="doWritten()">Show mark scheme</button></div>`;
+  } else if(doneOk){
+    html+=`<div class="nav-row">
+      ${cur>0?`<button class="btn" onclick="go(${cur-1})">← Back</button>`:""}
+      <button class="btn btn-p" onclick="next()">${cur===Qs.length-1?"See results →":"Next →"}</button>
+    </div>`;
+  }
+
+  el.innerHTML=html;
+}
+
+function toggleKW(){showKW=!showKW;render();}
+
+function doMC(i){
+  const q=Qs[cur];
+  selMC[q.id]=i;
+  answered[q.id]=i;
+  scores[q.id]=i===q.ans?getMarks(q):0;
+  render();
+}
+
+function doWritten(){
+  const q=Qs[cur];
+  const v=document.getElementById("wi").value;
+  answered[q.id]=v||"(no answer)";
+  render();
+}
+
+function setSelf(m){scores[Qs[cur].id]=m;render();}
+function next(){cur++;render();}
+function go(i){cur=i;render();}
+
+function renderResults(el){
+  const earned=Object.values(scores).reduce((s,v)=>s+v,0);
+  const total=Qs.reduce((s,q)=>s+getMarks(q),0);
+  const pct=Math.round((earned/total)*100);
+  const {g,c}=grade(pct);
+
+  const topics={};
+  Qs.forEach(q=>{
+    if(!topics[q.topic]) topics[q.topic]={e:0,t:0};
+    topics[q.topic].e+=scores[q.id]||0;
+    topics[q.topic].t+=getMarks(q);
+  });
+
+  const tRows=Object.entries(topics).map(([t,{e,t2}])=>{
+    const tot=topics[t].t;
+    const p=Math.round((topics[t].e/tot)*100);
+    const dc=p>=70?"dg":p>=40?"da":"dr";
+    const st=p>=70?"Secure":p>=40?"Review":"Revise";
+    return `<div class="t-row"><span><span class="dot ${dc}"></span>${t}</span><span style="color:var(--color-text-secondary);">${topics[t].e}/${tot} — ${st}</span></div>`;
+  }).join("");
+
+  const weak=Object.entries(topics).filter(([t,_])=>Math.round((topics[t].e/topics[t].t)*100)<50).map(([t])=>t);
+
+  const kwHtml=`<div class="divider"></div>
+    <p class="section-label">Key word reference — keep for revision</p>
+    <div class="kw-grid">${KW.map(k=>`<div class="kw-card"><div class="kw-term">${k.term}</div><div class="kw-def">${k.def}</div></div>`).join("")}</div>`;
+
+  el.innerHTML=`
+    <div class="score-card">
+      <p style="text-align:center;font-size:14px;color:var(--color-text-secondary);margin-bottom:4px;">Your estimated grade</p>
+      <div class="grade" style="color:${c};">${g}</div>
+      <p style="text-align:center;font-size:15px;color:var(--color-text-secondary);">${earned} / ${total} marks · ${pct}%</p>
+    </div>
+    <div class="divider"></div>
+    <p class="section-label">Topic breakdown</p>
+    ${tRows}
+    <div class="divider"></div>
+    ${weak.length>0?`<div style="background:#FAEEDA;border:0.5px solid #BA7517;border-radius:var(--border-radius-md);padding:12px 14px;font-size:13px;color:#412402;margin-bottom:12px;">
+      <strong>Priority revision:</strong> ${weak.join(", ")} — focus on the key definitions and practise tracing pathways through the food web.
+    </div>`:""}
+    <div class="nav-row">
+      <button class="btn btn-p" onclick="restart()">Retake quiz</button>
+      <button class="btn" onclick="typeof sendPrompt!=='undefined'&&sendPrompt('Explain food chains, food webs and interdependence for GCSE Biology with examples')">Get more help ↗</button>
+    </div>
+    ${kwHtml}`;
+}
+
+function restart(){cur=0;scores={};answered={};selMC={};showKW=false;render();}
+render();
+</script>
